@@ -1,44 +1,76 @@
 # Media-Discovery Platform
 
-A movie/show **discovery** platform whose headline feature is **search that
-understands meaning** (for example *"feel-good space movie with a female lead"*)
-plus a **recommender** that adapts to watch history. It is built as a set of
-**observable, event-driven microservices**, not a monolith CRUD app.
+An **event-driven, observable, fault-tolerant backend** (Python/FastAPI
+microservices) that serves **semantic search and recommendations** and is built
+to stay fast and correct under load and when a service fails. A movie catalog is
+the workload; the systems engineering around it is the point.
 
 [![CI](https://github.com/apoorvjoshi000/media-discovery-platform/actions/workflows/ci.yml/badge.svg)](./.github/workflows/ci.yml)
 ![license](https://img.shields.io/badge/license-MIT-blue)
-![stack](https://img.shields.io/badge/stack-FastAPI%20%C2%B7%20Qdrant%20%C2%B7%20Kafka%20%C2%B7%20Next.js-6ea8fe)
+![stack](https://img.shields.io/badge/stack-FastAPI%20%C2%B7%20Qdrant%20%C2%B7%20Kafka%20%C2%B7%20Redis-6ea8fe)
 
 > **Status:** runs end-to-end via Docker Compose. The whole backend is Python
-> (FastAPI); the frontend is a thin Next.js client. Measured numbers from a real
-> local run are recorded in [`docs/PERF_REPORT.md`](docs/PERF_REPORT.md).
+> (FastAPI); the frontend is a thin Next.js client. All numbers below are
+> measured on a real local run, recorded in
+> [`docs/PERF_REPORT.md`](docs/PERF_REPORT.md).
 
 ---
 
 ## The problem it solves
-Keyword search fails the way people actually look for things to watch. Searching
-*"hopeful science fiction about saving earth"* against a plain text index returns
-nothing useful unless those exact words appear in the plot. This platform indexes
-the **meaning** of every plot as a vector, so a query is matched by semantics, not
-string overlap, and then **fuses** that with keyword search so exact-match queries
-still work. On top of that sits a recommender and a real-time trending feed driven
-by a streamed event log, all behind an authenticated, rate-limited, observable
-gateway.
+
+Adding "search that understands meaning" or a recommender to a product is easy to
+prototype in a notebook and hard to run as a real service. The embedding model is
+a few lines; the difficulty is everything around it: keeping latency low when
+traffic spikes, making sure one slow or dead dependency does not take the whole
+product down, controlling abuse, and being able to see what is happening inside
+the system in production.
+
+This project is that production layer. It wraps a semantic plus keyword search
+engine and a recommender in the infrastructure a real product needs: an
+authenticated, rate-limited, cached API gateway; an event-streaming pipeline that
+decouples user writes from the recommendation model; and metrics plus distributed
+tracing on every service. The result is a system that sustains hundreds of
+requests per second, degrades gracefully when a service is killed, and can be
+debugged from a dashboard rather than from guesswork.
+
+In short: the retrieval is a standard technique; the engineering that makes it
+fast, reliable, and observable is the actual work.
+
+## Engineering highlights (all measured)
+
+Measured with k6 on a 4-vCPU Docker VM (full method in
+[`docs/PERF_REPORT.md`](docs/PERF_REPORT.md)):
+
+- **Caching is the biggest lever:** adding a response cache lifted sustained
+  throughput **~5x (54 to 265 req/s)** and cut **p99 latency from 3.35 s to
+  76 ms**, with a **~99.8% cache hit ratio** and **0 errors** under load.
+- **Abuse control:** a token-bucket rate limiter implemented as an **atomic Redis
+  Lua script** (race-free across workers) allowed 80 and rejected 120 on a
+  200-request concurrent burst, returning `Retry-After`.
+- **Graceful degradation:** the gateway isolates routes, so a dead upstream
+  returns `502` on only its own route while the rest of the API keeps serving
+  `200` (chaos drill in [`loadtest/README.md`](loadtest/README.md)).
+- **Real-time, decoupled recommendations:** user interactions flow through
+  **Kafka** to a consumer that updates a time-decay "trending" window in real
+  time; the item-item model rebuilds from the replayable event log, so the write
+  path never blocks on the recommender being up.
+- **Honest bottleneck:** uncached, the limit is CPU-bound embedding on 4 vCPUs;
+  the code already offloads embedding to a threadpool and the path forward is to
+  scale the search service horizontally.
 
 ## What it does
+
 - **Semantic search** over plot embeddings (`all-MiniLM-L6-v2`, 384-d) in a
   **Qdrant** HNSW index.
 - **Hybrid search** = keyword (Mongo text) + vector, fused with **Reciprocal
-  Rank Fusion**.
+  Rank Fusion**, so meaning-based queries work without breaking exact-match ones.
 - **Recommender**: item-item collaborative filtering ("more like this") plus a
-  personalised "for you" row, with **real-time trending** driven by a Kafka
-  event stream and a time-decay window.
+  personalised "for you" row, with **real-time trending** from the Kafka stream.
 - **API gateway**: JWT auth (short-lived access token + httpOnly refresh cookie,
-  RBAC), **token-bucket rate limiting** (atomic Redis Lua), and a response
-  **cache**.
+  RBAC), **token-bucket rate limiting**, response **cache**, and CORS.
 - **Observability**: Prometheus metrics on every service, a Grafana dashboard,
-  and **distributed tracing** (OpenTelemetry to Jaeger) across
-  gateway, search, and catalog.
+  and **distributed tracing** (OpenTelemetry to Jaeger) across gateway, search,
+  and catalog.
 
 ## Architecture
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full diagram and data
@@ -70,7 +102,7 @@ Next.js web client, over MongoDB, Qdrant, Redis, and Kafka.
 | Testing / load | pytest, k6 |
 | Infra | Docker Compose, GitHub Actions CI |
 
-Everything an interviewer will ask about (HNSW, RRF, the token bucket, JWT
+Everything an interviewer is likely to probe (the token-bucket Lua, RRF, JWT
 storage, item-item CF, cold-start, the load-test bottleneck) is Python you can
 read top to bottom.
 
@@ -154,7 +186,7 @@ docs/           ARCHITECTURE, API, PERF_REPORT
 
 ---
 
-## Performance
+## Performance detail
 Measured on a 4-vCPU Docker VM against the bundled 16-title sample (full method
 and reproduction in [`docs/PERF_REPORT.md`](docs/PERF_REPORT.md)):
 
@@ -166,9 +198,7 @@ and reproduction in [`docs/PERF_REPORT.md`](docs/PERF_REPORT.md)):
 | Effect of the response cache | throughput ~5x, p99 3.35 s to 76 ms |
 | Cache hit ratio under load | ~99.8% |
 
-The uncached bottleneck is CPU-bound embedding; the code already offloads it to a
-threadpool and caches results, and the next step is to scale the search service
-horizontally. Re-run on TMDB 5000 for a larger catalog-size figure.
+Re-run on TMDB 5000 for a larger catalog-size figure.
 
 ## License
 MIT, see [LICENSE](LICENSE).
