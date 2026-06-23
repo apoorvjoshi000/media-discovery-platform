@@ -5,7 +5,7 @@ understands meaning** (for example *"feel-good space movie with a female lead"*)
 plus a **recommender** that adapts to watch history. It is built as a set of
 **observable, event-driven microservices**, not a monolith CRUD app.
 
-[![CI](https://github.com/USERNAME/media-discovery-platform/actions/workflows/ci.yml/badge.svg)](./.github/workflows/ci.yml)
+[![CI](https://github.com/apoorvjoshi000/media-discovery-platform/actions/workflows/ci.yml/badge.svg)](./.github/workflows/ci.yml)
 ![license](https://img.shields.io/badge/license-MIT-blue)
 ![stack](https://img.shields.io/badge/stack-FastAPI%20%C2%B7%20Qdrant%20%C2%B7%20Kafka%20%C2%B7%20Next.js-6ea8fe)
 
@@ -154,18 +154,21 @@ docs/           ARCHITECTURE, API, PERF_REPORT
 
 ---
 
-## CV bullets (numbers measured, see `docs/PERF_REPORT.md`)
-- Architected a **4-service** media-discovery backend in **Python/FastAPI** (plus a Next.js client) over MongoDB, Qdrant, Redis, and Kafka, serving **semantic search** at **31 ms p95** warm and **265 req/s** through the gateway (k6, 4 vCPU)
-- Built **hybrid semantic + keyword search** using `all-MiniLM-L6-v2` embeddings in a Qdrant HNSW index fused with Reciprocal Rank Fusion, so meaning-based queries (for example "hopeful sci-fi about saving earth") return relevant titles that keyword search misses
-- Implemented a Redis token-bucket rate limiter (atomic Lua) + response cache that **raised throughput ~5x (54 to 265 req/s)** and cut **p99 from 3.35 s to 76 ms**, and instrumented every service with Prometheus/Grafana + OpenTelemetry tracing
+## Performance
+Measured on a 4-vCPU Docker VM against the bundled 16-title sample (full method
+and reproduction in [`docs/PERF_REPORT.md`](docs/PERF_REPORT.md)):
 
-> The throughput/latency figures come from a 4-vCPU local run on the 16-title
-> sample. Re-run on TMDB 5000 for a headline catalog-size number.
+| Metric | Result |
+|---|---|
+| Search throughput (warm, cache on) | 265 req/s, 0 errors |
+| Search p99 latency (warm) | 76 ms |
+| Search p95 latency (warm) | 31 ms |
+| Effect of the response cache | throughput ~5x, p99 3.35 s to 76 ms |
+| Cache hit ratio under load | ~99.8% |
 
-## Interview defense
-The line-by-line Q&A (HNSW, RRF, token bucket, JWT storage, cache stampede,
-cold-start, load-test bottlenecks) lives in the project spec at
-`../../output/apoorv_projects/CV1_SDE_SWE/01_microservices_media_platform.md`.
+The uncached bottleneck is CPU-bound embedding; the code already offloads it to a
+threadpool and caches results, and the next step is to scale the search service
+horizontally. Re-run on TMDB 5000 for a larger catalog-size figure.
 
 ## License
 MIT, see [LICENSE](LICENSE).
