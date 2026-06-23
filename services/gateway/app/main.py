@@ -8,6 +8,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
@@ -29,6 +30,17 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="gateway", version="1.0.0", lifespan=lifespan)
 app.add_middleware(MetricsMiddleware)
+# CORS so the browser client at :3000 can call the gateway at :8080.
+# allow_credentials=True is needed for the refresh-token cookie, which rules out
+# a wildcard origin, so we list the web origins explicitly.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[o.strip() for o in settings.cors_origins.split(",") if o.strip()],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["X-Cache", "X-RateLimit-Remaining"],
+)
 init_tracing(app)
 
 CATALOG = settings.catalog_url

@@ -27,5 +27,9 @@ class Settings(BaseSettings):
     node_env: str = "development"
     otel_exporter_otlp_endpoint: str | None = None
 
+    # Browser origins allowed to call the gateway (comma-separated). The web
+    # client runs at :3000 and calls the gateway at :8080 cross-origin.
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
+
 
 settings = Settings()
