@@ -1,16 +1,14 @@
-FROM node:22-alpine
+FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install deps first for better layer caching.
-COPY package.json ./
-RUN npm install --no-audit --no-fund
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY tsconfig.json ./
-COPY src ./src
+COPY app ./app
+COPY ingest.py ./
 
-ENV NODE_ENV=production
+ENV CATALOG_PORT=8001
 EXPOSE 8001
 
-# tsx runs TypeScript directly — no separate build step needed for this service.
-CMD ["npm", "run", "start"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]

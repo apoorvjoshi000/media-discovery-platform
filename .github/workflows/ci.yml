@@ -6,41 +6,24 @@ on:
   pull_request:
 
 jobs:
-  node-services:
-    name: ${{ matrix.service }} (node)
+  test:
+    name: ${{ matrix.service }} (python)
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        service: [catalog, gateway, recommender]
+        service: [catalog, gateway, recommender, search]
     defaults:
       run:
         working-directory: services/${{ matrix.service }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: services/${{ matrix.service }}/package.json
-      - run: npm install --no-audit --no-fund
-      - name: Typecheck
-        run: npx tsc -p tsconfig.json --noEmit
-      - name: Unit tests
-        run: npm test
-
-  search-service:
-    name: search (python)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: services/search
-    steps:
-      - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      # Fusion tests are pure-python; skip the heavy torch/qdrant install in CI.
+      # Unit tests cover pure logic (RRF, CF, token bucket, CSV parsing) and do
+      # not need the heavy runtime deps (torch, qdrant, motor), so install just
+      # pytest to keep CI fast.
       - run: pip install pytest
       - run: pytest -q
 
@@ -53,13 +36,16 @@ jobs:
         run: docker compose config -q
 
   build-images:
-    name: build node images
+    name: build ${{ matrix.service }} image
     runs-on: ubuntu-latest
-    needs: [node-services]
+    needs: [test]
     strategy:
+      fail-fast: false
       matrix:
         service: [catalog, gateway, recommender]
     steps:
       - uses: actions/checkout@v4
+      # The search image bundles torch + the embedding model and is slow to
+      # build; it is validated via compose-validate and locally, not per push.
       - name: Build ${{ matrix.service }} image
         run: docker build -t media-${{ matrix.service }}:ci services/${{ matrix.service }}

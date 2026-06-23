@@ -7,7 +7,7 @@ set -euo pipefail
 GATEWAY="${GATEWAY:-http://localhost:8080}"
 
 echo "==> 1/4 Ingesting catalog into Mongo (catalog service)"
-docker compose exec -T catalog npm run ingest
+docker compose exec -T catalog python ingest.py
 
 echo "==> 2/4 Building embeddings + Qdrant index (search service)"
 docker compose exec -T search python ingest_embeddings.py

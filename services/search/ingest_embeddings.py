@@ -58,7 +58,12 @@ def main() -> None:
     if args.dataset and args.dataset.endswith(".csv"):
         movies = load_tmdb_csv(Path(args.dataset))
     else:
-        default = Path(__file__).resolve().parents[2] / "data" / "sample_movies.json"
+        # /data is the canonical in-container dataset location (compose mounts
+        # the repo's ./data there read-only). Falls back to the repo path when
+        # run outside Docker.
+        default = Path("/data/sample_movies.json")
+        if not default.exists():
+            default = Path(__file__).resolve().parent.parent.parent / "data" / "sample_movies.json"
         movies = load_sample(Path(args.dataset) if args.dataset else default)
 
     if not movies:

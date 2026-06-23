@@ -1,4 +1,4 @@
-"""Search service — semantic (vector), keyword (delegated to catalog), and
+"""Search service - semantic (vector), keyword (delegated to catalog), and
 hybrid (RRF) search over the movie corpus."""
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from fastapi import FastAPI, Query
 from fastapi.responses import Response
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 from pydantic import BaseModel
+from starlette.concurrency import run_in_threadpool
 
 from .config import settings
 from .embeddings import get_embedder
@@ -36,7 +37,7 @@ _client = httpx.AsyncClient(timeout=5.0)
 class SearchQuery(BaseModel):
     query: str
     limit: int = 10
-    ef: int | None = None  # HNSW ef_search — exposes the recall/latency knob
+    ef: int | None = None  # HNSW ef_search - exposes the recall/latency knob
 
 
 # --------------------------------------------------------------------------- #
@@ -66,9 +67,12 @@ async def _hydrate(ids: list[int]) -> list[dict]:
         return []
 
 
-def _semantic_ids(query: str, limit: int, ef: int | None) -> list[tuple[int, float]]:
-    vec = get_embedder().encode_one(query)
-    return get_store().search(vec, limit=limit, ef=ef)
+async def _semantic_ids(query: str, limit: int, ef: int | None) -> list[tuple[int, float]]:
+    # Embedding is CPU-bound (torch); run it in a threadpool so it does not block
+    # the event loop and starve concurrent requests. Qdrant search is a fast
+    # network call. This is what lets one worker stay responsive under load.
+    vec = await run_in_threadpool(get_embedder().encode_one, query)
+    return await run_in_threadpool(get_store().search, vec, limit, ef)
 
 
 # --------------------------------------------------------------------------- #
@@ -95,7 +99,7 @@ async def stats() -> dict:
 @app.post("/search/semantic")
 async def semantic(body: SearchQuery) -> dict:
     start = time.perf_counter()
-    hits = _semantic_ids(body.query, body.limit, body.ef)
+    hits = await _semantic_ids(body.query, body.limit, body.ef)
     items = await _hydrate([i for i, _ in hits])
     score_by_id = dict(hits)
     for it in items:
@@ -121,7 +125,7 @@ async def hybrid(body: SearchQuery) -> dict:
     start = time.perf_counter()
     # Pull a wider candidate set than `limit` from each arm so fusion has room.
     pool = max(body.limit * 3, 20)
-    semantic_hits = _semantic_ids(body.query, pool, body.ef)
+    semantic_hits = await _semantic_ids(body.query, pool, body.ef)
     keyword_ids = await _keyword_ids(body.query, pool)
     fused = reciprocal_rank_fusion([[i for i, _ in semantic_hits], keyword_ids])
     top_ids = [doc_id for doc_id, _ in fused[: body.limit]]

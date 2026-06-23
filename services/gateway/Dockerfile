@@ -1,13 +1,15 @@
-FROM node:22-alpine
+FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY package.json ./
-RUN npm install --no-audit --no-fund
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY tsconfig.json ./
-COPY src ./src
+COPY app ./app
 
-ENV NODE_ENV=production
+ENV GATEWAY_PORT=8080
 EXPOSE 8080
-CMD ["npm", "run", "start"]
+
+# Multiple workers: the gateway is I/O-bound (proxying) and the token bucket is
+# atomic in Redis, so it stays correct across workers.
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "2"]

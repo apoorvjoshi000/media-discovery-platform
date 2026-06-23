@@ -2,7 +2,7 @@
 
 Fuses two (or more) ranked lists into one. Chosen over score-normalisation
 because it needs no calibration between the keyword (BM25-ish text score) and
-vector (cosine) scales — it only uses ranks. k dampens the contribution of
+vector (cosine) scales - it only uses ranks. k dampens the contribution of
 low-ranked items; k=60 is the value from the original Cormack et al. paper.
 """
 from __future__ import annotations

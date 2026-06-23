@@ -8,8 +8,8 @@ expect `Authorization: Bearer <accessToken>`.
 |---|---|---|---|
 | POST | `/api/auth/signup` | `{email, password}` | First user becomes `admin` |
 | POST | `/api/auth/login` | `{email, password}` | Returns `{accessToken}`; sets httpOnly refresh cookie |
-| POST | `/api/auth/refresh` | — | Uses refresh cookie → new access token |
-| POST | `/api/auth/logout` | — | Clears refresh cookie |
+| POST | `/api/auth/refresh` | - | Uses refresh cookie → new access token |
+| POST | `/api/auth/logout` | - | Clears refresh cookie |
 
 ## Catalog
 | Method | Path | Notes |

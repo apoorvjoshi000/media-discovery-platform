@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Media Discovery",
-  description: "Semantic movie discovery — microservices demo",
+  description: "Semantic movie discovery - microservices demo",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
