@@ -1,0 +1,178 @@
+[
+  {
+    "movieId": 1,
+    "title": "Gravity Lost",
+    "year": 2019,
+    "genres": ["Sci-Fi", "Drama"],
+    "language": "en",
+    "overview": "A feel-good space adventure in which a lone female astronaut, stranded after a station failure, improvises her way home and rediscovers hope.",
+    "posterPath": "/posters/gravity_lost.jpg",
+    "voteAverage": 7.8,
+    "runtime": 118
+  },
+  {
+    "movieId": 2,
+    "title": "The Quiet Algorithm",
+    "year": 2021,
+    "genres": ["Thriller", "Mystery"],
+    "language": "en",
+    "overview": "A reclusive data scientist uncovers a hidden pattern in city surveillance that points to a crime no one has reported yet.",
+    "posterPath": "/posters/quiet_algorithm.jpg",
+    "voteAverage": 7.1,
+    "runtime": 104
+  },
+  {
+    "movieId": 3,
+    "title": "Monsoon Letters",
+    "year": 2018,
+    "genres": ["Romance", "Drama"],
+    "language": "hi",
+    "overview": "Two pen pals in 1990s Kolkata fall in love through handwritten letters, never having met, as the monsoon reshapes their city and their plans.",
+    "posterPath": "/posters/monsoon_letters.jpg",
+    "voteAverage": 8.0,
+    "runtime": 132
+  },
+  {
+    "movieId": 4,
+    "title": "Redline District",
+    "year": 2022,
+    "genres": ["Action", "Crime"],
+    "language": "en",
+    "overview": "An ex-getaway driver is pulled back for one last heist across a neon-lit megacity, racing a corrupt task force to the harbor.",
+    "posterPath": "/posters/redline_district.jpg",
+    "voteAverage": 6.9,
+    "runtime": 110
+  },
+  {
+    "movieId": 5,
+    "title": "The Last Greenhouse",
+    "year": 2020,
+    "genres": ["Sci-Fi", "Drama"],
+    "language": "en",
+    "overview": "On a dying Earth, a botanist guards the final seed vault and teaches a skeptical young engineer why hope is worth defending.",
+    "posterPath": "/posters/last_greenhouse.jpg",
+    "voteAverage": 7.5,
+    "runtime": 121
+  },
+  {
+    "movieId": 6,
+    "title": "Comedy Night Shift",
+    "year": 2023,
+    "genres": ["Comedy"],
+    "language": "en",
+    "overview": "A burned-out night-shift nurse moonlights at open-mic comedy, turning hospital chaos into the funniest set the city has seen.",
+    "posterPath": "/posters/comedy_night_shift.jpg",
+    "voteAverage": 6.5,
+    "runtime": 96
+  },
+  {
+    "movieId": 7,
+    "title": "Orbit of Two",
+    "year": 2017,
+    "genres": ["Romance", "Sci-Fi"],
+    "language": "en",
+    "overview": "Two rival mission engineers fall for each other while building the spacecraft that will separate them forever; a warm, hopeful love story among the stars.",
+    "posterPath": "/posters/orbit_of_two.jpg",
+    "voteAverage": 7.9,
+    "runtime": 108
+  },
+  {
+    "movieId": 8,
+    "title": "Silent Ledger",
+    "year": 2016,
+    "genres": ["Thriller", "Crime"],
+    "language": "en",
+    "overview": "A forensic accountant discovers a shell-company web that reaches the top of city hall and must decide how far she will go to expose it.",
+    "posterPath": "/posters/silent_ledger.jpg",
+    "voteAverage": 7.3,
+    "runtime": 115
+  },
+  {
+    "movieId": 9,
+    "title": "Festival of Lamps",
+    "year": 2019,
+    "genres": ["Drama", "Family"],
+    "language": "hi",
+    "overview": "Three generations of a Jaipur family reunite for Diwali and confront the secret that scattered them a decade ago.",
+    "posterPath": "/posters/festival_of_lamps.jpg",
+    "voteAverage": 7.7,
+    "runtime": 127
+  },
+  {
+    "movieId": 10,
+    "title": "Deep Field",
+    "year": 2021,
+    "genres": ["Sci-Fi", "Adventure"],
+    "language": "en",
+    "overview": "A crew of astronomers chasing a strange signal at the edge of the solar system find a derelict ship and a choice that could save or doom Earth.",
+    "posterPath": "/posters/deep_field.jpg",
+    "voteAverage": 7.6,
+    "runtime": 134
+  },
+  {
+    "movieId": 11,
+    "title": "The Paper Kite",
+    "year": 2015,
+    "genres": ["Drama", "Family"],
+    "language": "hi",
+    "overview": "A schoolteacher in a flood-prone village builds a makeshift library, inspiring a generation of children to dream beyond the water line.",
+    "posterPath": "/posters/paper_kite.jpg",
+    "voteAverage": 8.1,
+    "runtime": 119
+  },
+  {
+    "movieId": 12,
+    "title": "Velocity Trap",
+    "year": 2022,
+    "genres": ["Action", "Thriller"],
+    "language": "en",
+    "overview": "A street-racing prodigy is blackmailed into smuggling a device across three countries while a relentless agent closes in.",
+    "posterPath": "/posters/velocity_trap.jpg",
+    "voteAverage": 6.7,
+    "runtime": 113
+  },
+  {
+    "movieId": 13,
+    "title": "Laugh Lines",
+    "year": 2018,
+    "genres": ["Comedy", "Romance"],
+    "language": "en",
+    "overview": "A washed-up sitcom writer and a viral meme creator team up for one show, falling for each other between punchlines.",
+    "posterPath": "/posters/laugh_lines.jpg",
+    "voteAverage": 6.8,
+    "runtime": 101
+  },
+  {
+    "movieId": 14,
+    "title": "The Cartographer's Daughter",
+    "year": 2020,
+    "genres": ["Adventure", "Drama"],
+    "language": "en",
+    "overview": "A young mapmaker retraces her late father's expeditions across the Himalayas, uncovering a route thought to be a myth.",
+    "posterPath": "/posters/cartographers_daughter.jpg",
+    "voteAverage": 7.4,
+    "runtime": 124
+  },
+  {
+    "movieId": 15,
+    "title": "Neon Harvest",
+    "year": 2023,
+    "genres": ["Sci-Fi", "Thriller"],
+    "language": "en",
+    "overview": "In a vertical farming megastructure, a maintenance worker discovers the crops are being used to encode stolen memories.",
+    "posterPath": "/posters/neon_harvest.jpg",
+    "voteAverage": 7.2,
+    "runtime": 109
+  },
+  {
+    "movieId": 16,
+    "title": "Hopeful Static",
+    "year": 2019,
+    "genres": ["Drama", "Sci-Fi"],
+    "language": "en",
+    "overview": "A radio operator at a remote Antarctic base hears a hopeful voice in the static and risks everything to find its source.",
+    "posterPath": "/posters/hopeful_static.jpg",
+    "voteAverage": 7.0,
+    "runtime": 117
+  }
+]
