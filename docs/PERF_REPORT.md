@@ -48,6 +48,26 @@ not the bottleneck. With defaults, a single source IP is correctly throttled:
 a 200-request concurrent burst returned **80 x 200 and 120 x 429** (capacity +
 refill worth allowed, the rest rejected with `Retry-After`).
 
+## Chaos test (graceful degradation, measured)
+With steady traffic to both the catalog (`/api/movies`) and search
+(`/api/search/semantic`, unique queries so each one actually reaches the search
+service), the search container was killed mid-run with `docker compose kill
+search`, then restarted:
+
+| Phase | catalog `/api/movies` | search `/api/search` |
+|---|---|---|
+| before (search up) | 200 x16 | 200 x16 |
+| **search killed** | **200 x24 (100%)** | **502 x24** |
+| search recovered | 200 | 200 (~67 to 240 ms) |
+
+The key result: during the search outage the catalog kept serving **100%** of
+requests while search failed **in isolation** with `502` (no cascade), because
+the gateway proxies per route and turns a dead upstream into a `502` on that
+route only. After `docker compose up -d search`, search returned to `200`
+(the first request after restart is slower while the embedding model reloads).
+Reproduce with `bash` over the steps above, or the drill in
+[`loadtest/README.md`](../loadtest/README.md).
+
 ## Reproduce
 ```bash
 make up && make seed

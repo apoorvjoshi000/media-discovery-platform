@@ -47,9 +47,10 @@ Measured with k6 on a 4-vCPU Docker VM (full method in
 - **Abuse control:** a token-bucket rate limiter implemented as an **atomic Redis
   Lua script** (race-free across workers) allowed 80 and rejected 120 on a
   200-request concurrent burst, returning `Retry-After`.
-- **Graceful degradation:** the gateway isolates routes, so a dead upstream
-  returns `502` on only its own route while the rest of the API keeps serving
-  `200` (chaos drill in [`loadtest/README.md`](loadtest/README.md)).
+- **Graceful degradation (measured):** killing the search service mid-load left
+  the catalog serving **100% of requests (`200`)** while search failed in
+  isolation with `502`, with no cascade, and it recovered to `200` on restart.
+  See the chaos test in [`docs/PERF_REPORT.md`](docs/PERF_REPORT.md).
 - **Real-time, decoupled recommendations:** user interactions flow through
   **Kafka** to a consumer that updates a time-decay "trending" window in real
   time; the item-item model rebuilds from the replayable event log, so the write
